@@ -36,11 +36,13 @@ Local zip copies used during the merge: `Downloads\ai-job-search-india-master.zi
 | Change | What you get |
 |--------|----------------|
 | **pypdf ATS extract** | `/apply` Step 5d and `tools/verify_pdf.py` read the CV PDF text layer with **pypdf** first (`pip install pypdf`, BSD). Windows does not need Poppler for a mechanical ATS parseability check. Poppler `pdftotext -layout -enc UTF-8` is still the fallback. If both are missing, the check degrades to a visual keyword review. |
-| **Typst templates** | Community CV + cover-letter pack in [`typst-modern/`](typst-modern/). Stock templates stay LaTeX (`moderncv` + `cover.cls`). Register the Typst pair with `/add-template` — it does not replace the bundled LaTeX. After both files are active, `/apply` runs `typst compile`. |
+| **Typst templates** (bring-your-own; bundled LaTeX stays) | The pair [discussion #351](https://github.com/MadsLorentzen/ai-job-search/discussions/351) asked for — **not** a request to replace `moderncv`. Independent MIT templates in [`typst-modern/`](typst-modern/). Register with `/add-template`; `/add-template --use default` restores LaTeX. **No pull request to upstream for Typst** (Mads asked that it be published separately and announced in [#78](https://github.com/MadsLorentzen/ai-job-search/discussions/78)). |
 | **India + remote portals** ([ashutoshgh/ai-job-search-india](https://github.com/ashutoshgh/ai-job-search-india)) | 10 India portal skills — Apna, Hirist, IIMJobs, Instahyre, Indeed India, Randstad India, Cutshort, AIJobs, Foundit, ProtocolJobs — plus 5 remote-board skills — Himalayas, RemoteOK, We Work Remotely, Y Combinator, Otta. Honest identifying User-Agent tokens on all 15 CLIs. **Heads-up:** `indeed-india-search`'s `detail` command fetches a path Indeed's `robots.txt` disallows — documented in the skill; personal use only. Foundit is **detail-only** (search is robots-disallowed / bot-blocked). |
 | **Universal Edition** ([waleedtarbosh/ai-job-search](https://github.com/waleedtarbosh/ai-job-search)) | Zero-duplication runtime pointers: `AGENTS.md` is the index; `OPENCODE.md`, `GEMINI.md`, and `CODEX.md` route other CLIs to the same `.claude/commands/` workflows. Identical `job-search` routers live under `.agents/skills/`, `.claude/skills/`, and `.opencode/skills/`. Candidate profile stays in `CLAUDE.md` so `/setup` does not drift. See [ai-job-search-plan.md](ai-job-search-plan.md). |
 
-Quick start for the Typst pack: install [Typst](https://github.com/typst/typst/releases) (`winget install --id Typst.Typst` on Windows), then:
+**Typst CV + cover-letter pack** (the #351 path — bundled LaTeX stays):
+
+Install [Typst](https://github.com/typst/typst/releases) (`winget install --id Typst.Typst` on Windows). From this repo root, register the two files — not `/cv/template.typ`:
 
 ```
 /add-template typst-modern/cv/template.typ
@@ -48,7 +50,7 @@ Quick start for the Typst pack: install [Typst](https://github.com/typst/typst/r
 /add-template --list
 ```
 
-Use `/add-template --use default` to go back to LaTeX. Full notes: [`typst-modern/README.md`](typst-modern/README.md).
+Compile stays `typst compile <file>.typ <file>.pdf`. Page limits: CV **2**, cover letter **1**. `/add-template --use default` restores stock LaTeX. Full notes: [`typst-modern/README.md`](typst-modern/README.md).
 
 ## Does it actually work?
 
@@ -363,7 +365,7 @@ This re-runs the search configuration interview: which roles to target, which sk
 
 The CV uses [moderncv](https://ctan.org/pkg/moderncv) (banking style). The cover letter uses a custom `cover.cls` with Lato/Raleway fonts. Both are LaTeX — the reference engine this repo ships and maintains.
 
-This fork also ships a ready-made Typst pair in `typst-modern/` (2-page CV, 1-page cover letter, single-column / ATS-friendly). It is **not** the stock template — register it:
+This fork also ships a ready-made Typst pair in `typst-modern/` (2-page CV, 1-page cover letter, single-column / ATS-friendly). Bundled templates stay LaTeX (`moderncv` + `cover.cls`). Typst is bring-your-own via `/add-template` ([#351](https://github.com/MadsLorentzen/ai-job-search/discussions/351)) — not an in-tree replacement. Register from this folder:
 
 ```
 /add-template typst-modern/cv/template.typ

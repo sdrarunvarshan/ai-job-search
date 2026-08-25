@@ -1,10 +1,15 @@
 # Typst templates for ai-job-search
 
-Bring-your-own CV and cover-letter pair for [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search).
+**Typst CV + cover-letter templates** (bring-your-own; bundled LaTeX stays)
 
-Upstream bundled templates stay LaTeX (`moderncv` + `cover.cls`). Typst is supported through `/add-template`, which registers your `.typ` files and does **not** convert the bundled LaTeX. After both a CV and a cover letter are active, `/apply` runs `typst compile` and you do not need a LaTeX distribution for applications.
+The pair [#351](https://github.com/MadsLorentzen/ai-job-search/discussions/351) asked for, published separately — **not** a request to replace `moderncv`. There is **no pull request to Mads for Typst**.
 
-This is the missing pair from [discussion #351](https://github.com/MadsLorentzen/ai-job-search/discussions/351). Placeholders only — no personal data.
+- Clean copy (placeholders only): [sdrarunvarshan/ai-job-search](https://github.com/sdrarunvarshan/ai-job-search) → `typst-modern/`
+- What it adapts: Typst CV (`cv/template.typ`, 2 pages) and cover letter (`cover-letter/template.typ`, 1 page)
+- How to use: install Typst, then `/add-template` twice on those files. Compile stays `typst compile <file>.typ <file>.pdf`. `/add-template --use default` restores LaTeX.
+- Tracks upstream: not a framework fork — independent MIT templates
+
+Upstream bundled templates stay LaTeX (`moderncv` + `cover.cls`). After both a CV and a cover letter are active, `/apply` runs `typst compile` and you do not need a LaTeX distribution for applications. Placeholders only — no personal data.
 
 ## Files
 
@@ -18,8 +23,8 @@ Both use Typst’s bundled Libertinus Serif. Single column (ATS-friendly). Dates
 ## Use with ai-job-search (the #351 path)
 
 1. Install [Typst](https://github.com/typst/typst/releases). Windows: `winget install --id Typst.Typst`
-2. The files live on `master` in `typst-modern/` (the old `typst-templates` branch was merged and deleted).
-3. In Claude Code, inside your **ai-job-search** working copy, register each template. Point at the files from this pack:
+2. The files live in `typst-modern/` on this repo. From your **normal ai-job-search folder** (after you have those two `.typ` files), register them. Paths are relative to the repo root — not `/cv/template.typ`.
+3. In Claude Code:
 
 ```
 /add-template typst-modern/cv/template.typ
