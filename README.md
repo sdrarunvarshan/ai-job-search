@@ -20,12 +20,14 @@ An AI-powered job application framework built on [Claude Code](https://claude.co
 
 ## Current changes (this fork)
 
-`master` now includes the work that used to live only on `feat/pypdf-ats-extract` and `typst-templates`. Those branches have been deleted on GitHub.
+`master` now includes the work that used to live only on `feat/pypdf-ats-extract` and `typst-templates` (those branches were deleted), plus two community forks merged in:
 
 | Change | What you get |
 |--------|----------------|
 | **pypdf ATS extract** | `/apply` Step 5d and `tools/verify_pdf.py` read the CV PDF text layer with **pypdf** first (`pip install pypdf`, BSD). Windows does not need Poppler for a mechanical ATS parseability check. Poppler `pdftotext -layout -enc UTF-8` is still the fallback. If both are missing, the check degrades to a visual keyword review. |
 | **Typst templates** | Community CV + cover-letter pack in [`typst-modern/`](typst-modern/). Stock templates stay LaTeX (`moderncv` + `cover.cls`). Register the Typst pair with `/add-template` — it does not replace the bundled LaTeX. After both files are active, `/apply` runs `typst compile`. |
+| **India + remote portals** ([@ashutoshgh](https://github.com/ashutoshgh) / ai-job-search-india) | 10 India portal skills — Apna, Hirist, IIMJobs, Instahyre, Indeed India, Randstad India, Cutshort, AIJobs, Foundit, ProtocolJobs — plus 5 remote-board skills — Himalayas, RemoteOK, We Work Remotely, Y Combinator, Otta. Honest identifying User-Agent tokens on all 15 CLIs. **Heads-up:** `indeed-india-search`'s `detail` command fetches a path Indeed's `robots.txt` disallows — documented in the skill; personal use only. Foundit is **detail-only** (search is robots-disallowed / bot-blocked). |
+| **Universal Edition** ([@waleedtarbosh](https://github.com/waleedtarbosh/ai-job-search)) | Zero-duplication runtime pointers: `AGENTS.md` is the index; `OPENCODE.md`, `GEMINI.md`, and `CODEX.md` route other CLIs to the same `.claude/commands/` workflows. Identical `job-search` routers live under `.agents/skills/`, `.claude/skills/`, and `.opencode/skills/`. Candidate profile stays in `CLAUDE.md` so `/setup` does not drift. See [ai-job-search-plan.md](ai-job-search-plan.md). |
 
 Quick start for the Typst pack: install [Typst](https://github.com/typst/typst/releases) (`winget install --id Typst.Typst` on Windows), then:
 
@@ -80,7 +82,7 @@ The framework encodes career guidance best practices, including structured evalu
 
 ## Prerequisites
 
-- [Claude Code](https://claude.com/claude-code) (CLI). Using a different agent tool (Codex, Antigravity, Gemini CLI)? Start at [`AGENTS.md`](AGENTS.md) - the portal search skills work there out of the box, and [community forks](https://github.com/MadsLorentzen/ai-job-search/discussions/78) adapt the full workflow.
+- An AI CLI: [Claude Code](https://claude.com/claude-code), [OpenCode](https://opencode.ai), Gemini CLI, Antigravity, or Codex. Claude Code uses `/setup`, `/scrape`, `/apply` as before. Other CLIs load `OPENCODE.md` / `GEMINI.md` / `CODEX.md` (they import [`AGENTS.md`](AGENTS.md)) and run the same files under `.claude/commands/`. [Community forks](https://github.com/MadsLorentzen/ai-job-search/discussions/78) adapt the full workflow.
 - Python 3.10+
 - [Bun](https://bun.sh) (for job search CLI tools)
 - LaTeX distribution with `lualatex` and `xelatex`: [TeX Live](https://tug.org/texlive/), [MacTeX](https://tug.org/mactex/), [TinyTeX](https://yihui.org/tinytex/), or [MiKTeX](https://miktex.org/). The CV compiles with `lualatex` (pdflatex often fails on modern MiKTeX installs with `fontawesome5` font-expansion errors); the cover letter compiles with `xelatex` because `cover.cls` requires `fontspec`. If using a minimal TeX install such as TinyTeX or BasicTeX, install the extra packages listed in [SETUP.md](SETUP.md#minimal-tex-install-tinytexbasictex).
@@ -111,7 +113,15 @@ cd ai-job-search
 PowerShell:
 
 ```powershell
-$tools = @("jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search", "linkedin-search", "freehire-search")
+$tools = @(
+  "jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search",
+  "linkedin-search", "freehire-search",
+  "apna-search", "hirist-search", "iimjobs-search", "instahyre-search",
+  "indeed-india-search", "randstad-india-search", "cutshort-search",
+  "aijobs-search", "foundit-search", "protocoljobs-search",
+  "himalayas-search", "remoteok-search", "weworkremotely-search",
+  "ycombinator-search", "otta-search"
+)
 foreach ($tool in $tools) {
   Push-Location ".agents/skills/$tool/cli"
   bun install
@@ -122,12 +132,20 @@ foreach ($tool in $tools) {
 Bash / zsh / Git Bash:
 
 ```bash
-for tool in jobbank-search jobdanmark-search jobindex-search jobnet-search linkedin-search freehire-search; do
+for tool in \
+  jobbank-search jobdanmark-search jobindex-search jobnet-search \
+  linkedin-search freehire-search \
+  apna-search hirist-search iimjobs-search instahyre-search \
+  indeed-india-search randstad-india-search cutshort-search \
+  aijobs-search foundit-search protocoljobs-search \
+  himalayas-search remoteok-search weworkremotely-search \
+  ycombinator-search otta-search
+do
   (cd .agents/skills/$tool/cli && bun install)
 done
 ```
 
-For `linkedin-search` and `freehire-search` the install is optional: both have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
+For `linkedin-search`, `freehire-search`, and the India/remote CLIs the install is optional: they have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
 
 ### 3. Set up your profile
 
@@ -184,11 +202,13 @@ Postings are treated as untrusted input (the workflow follows no instructions em
 
 ```
 ai-job-search/
-├── CLAUDE.md                          # Main candidate profile + workflow rules
+├── CLAUDE.md                          # Candidate profile (/setup writes this; not a runtime pointer)
 ├── .claude/
 │   ├── commands/
 │   │   ├── apply.md                   # /apply workflow (drafter-reviewer)
+│   │   ├── scrape.md                  # /scrape thin wrapper -> job-scraper skill
 │   │   ├── setup.md                   # /setup onboarding (documents folder, CV import, or interview)
+│   │   ├── upskill.md                 # /upskill thin wrapper -> upskill skill
 │   │   ├── expand.md                  # /expand competency enrichment from documents and online presence
 │   │   ├── add-template.md            # /add-template register custom templates (LaTeX, Typst, ...)
 │   │   ├── add-portal.md              # /add-portal generate a job-portal search skill for your market
@@ -210,15 +230,33 @@ ai-job-search/
 │   │   │   ├── 06-cover-letter-templates.md # LaTeX cover letter templates
 │   │   │   └── 07-interview-prep.md   # STAR examples + interview framework
 │   │   ├── job-scraper/               # Job search orchestration
+│   │   ├── job-search/                # Universal Edition router (not a portal CLI)
 │   │   └── upskill/                   # /upskill skill gap analysis and learning plan
 │   └── settings.json                  # Claude Code permissions (shared, scoped)
-├── .agents/skills/                    # Job portal CLI tools
+├── .opencode/skills/job-search/       # OpenCode copy of the Universal router
+├── .agents/skills/                    # Job portal CLI tools + Universal router
+│   ├── job-search/                    # Router skill for OpenCode/Codex/Gemini
 │   ├── jobbank-search/                # Akademikernes Jobbank (Denmark)
 │   ├── jobdanmark-search/             # Jobdanmark.dk (Denmark)
 │   ├── jobindex-search/               # Jobindex.dk (Denmark)
 │   ├── jobnet-search/                 # Jobnet.dk (Denmark, government portal)
 │   ├── linkedin-search/               # LinkedIn public job listings (country-agnostic)
-│   └── freehire-search/               # freehire.me tech job aggregator (multi-market, REST API)
+│   ├── freehire-search/               # freehire.me tech job aggregator (multi-market, REST API)
+│   ├── apna-search/                   # apna.co (India, entry-level / grey-collar)
+│   ├── hirist-search/                 # Hirist (India tech)
+│   ├── iimjobs-search/                # IIMJobs (India MBA / management)
+│   ├── instahyre-search/              # Instahyre (India tech / startup)
+│   ├── indeed-india-search/           # Indeed India (personal use; see skill ToS note)
+│   ├── randstad-india-search/         # Randstad India
+│   ├── cutshort-search/               # CutShort (India tech)
+│   ├── aijobs-search/                 # aijobs.net (global AI / data)
+│   ├── foundit-search/                # Foundit (detail-only)
+│   ├── protocoljobs-search/           # Protocol Jobs (India tech ATS aggregate)
+│   ├── himalayas-search/              # Himalayas (remote)
+│   ├── remoteok-search/               # RemoteOK (remote)
+│   ├── weworkremotely-search/         # We Work Remotely (remote)
+│   ├── ycombinator-search/            # Y Combinator Work at a Startup
+│   └── otta-search/                   # Otta / Welcome to the Jungle
 ├── cv/
 │   └── main_example.tex               # moderncv LaTeX template
 ├── cover_letters/
@@ -253,6 +291,11 @@ ai-job-search/
 ├── gmail_sync/                        # /gmail-sync state (processed message IDs, last sync date)
 ├── upskill/                           # /upskill report output (markdown reports per run)
 ├── job_search_tracker.csv             # Application tracking spreadsheet
+├── AGENTS.md                          # Runtime-agnostic index (single source of truth)
+├── OPENCODE.md                        # Thin pointer for OpenCode
+├── GEMINI.md                          # Thin pointer for Gemini / Antigravity
+├── CODEX.md                           # Thin pointer for Codex
+├── ai-job-search-plan.md              # Universal Edition architecture notes
 └── SETUP.md                           # Detailed setup guide
 ```
 
@@ -347,11 +390,22 @@ For **country-agnostic** starting points outside Denmark, the repo ships two por
 - **`linkedin-search`** — built on LinkedIn's public, unauthenticated `jobs-guest` endpoints. Field-agnostic, **zero runtime dependencies** (runs with just `bun`), and takes the search location as an explicit flag, so it works for any market out of the box (`-l "Berlin, Germany"`, `-l "Mumbai, Maharashtra, India"`, `-l "Remote"`, …). Intended for **personal use only** — automated access is against LinkedIn's Terms of Service, so keep volume low. See `.agents/skills/linkedin-search/SKILL.md`.
 - **`freehire-search`** — queries the [freehire.me](https://freehire.me) aggregator's public REST API (JSON, no API key). Tech-focused (software, data, engineering, DevOps, remote), multi-market via facet flags (`--region`, `--country`, `--remote`), and **zero runtime dependencies**. Unlike the HTML-scraping Danish portals, results come back structured (skills, seniority, category). The backend is MIT-licensed and [self-hostable](https://github.com/strelov1/freehire) — point `FREEHIRE_API_URL` at your own instance if you prefer. See `.agents/skills/freehire-search/SKILL.md`.
 
+This fork also ships the **India market** and **remote-board** CLIs from [@ashutoshgh](https://github.com/ashutoshgh)'s adaptation. `/scrape` auto-discovers them. Each CLI sends an identifying User-Agent (`<name>-search-cli/1.0`).
+
+**India (10):** `apna-search`, `hirist-search`, `iimjobs-search`, `instahyre-search`, `indeed-india-search`, `randstad-india-search`, `cutshort-search`, `aijobs-search`, `foundit-search`, `protocoljobs-search`.
+
+- **`indeed-india-search`** — personal use only. Its `detail` command fetches `/viewjob`, which Indeed's `robots.txt` disallows. Keep volume low; documented in the skill. Author follow-up pending upstream.
+- **`foundit-search`** — **detail-only**. Foundit's search API is robots-disallowed and HTML search is bot-blocked. Find a Foundit URL elsewhere and pass it to `detail`.
+
+**Remote (5):** `himalayas-search`, `remoteok-search`, `weworkremotely-search`, `ycombinator-search`, `otta-search`.
+
+The `job-search` folder under `.agents/skills/` is the Universal Edition **router**, not a portal. `/scrape` skips any skill with no `cli/` directory.
+
 ### Extending the framework: portals, templates, criteria - and borrowing from other forks
 
 Everything above adds up to an extension model, so here it is stated plainly. The framework has three extension points, and none of them require touching upstream:
 
-1. **Portal skills** - the module system for job boards. Every `*-search` skill is a self-contained folder under `.agents/skills/` with the same contract (a `search`/`detail` CLI, `--format json|table|plain` output, an `enabled:` flag in its `SKILL.md`, its own tests). `/scrape` auto-discovers any installed skill that follows the contract - nothing to register, nothing to wire up. `/add-portal` generates new ones; the [community portal index](https://github.com/MadsLorentzen/ai-job-search/discussions/78) catalogs the ones other forks have built.
+1. **Portal skills** - the module system for job boards. Every portal `*-search` skill is a self-contained folder under `.agents/skills/` with a `cli/` directory and the same contract (a `search`/`detail` CLI, `--format json|table|plain` output, an `enabled:` flag in its `SKILL.md`, its own tests). `/scrape` auto-discovers those; it skips routers such as `job-search`. `/add-portal` generates new ones; the [community portal index](https://github.com/MadsLorentzen/ai-job-search/discussions/78) catalogs the ones other forks have built.
 2. **Document templates** - `/add-template` registers any CV or cover-letter toolchain that compiles to PDF from the command line, LaTeX or otherwise.
 3. **Evaluation criteria** - deal-breakers and preferences in your profile are free-form, and the evaluation rubric scores against whatever you put there. "Strong parental-leave terms", "minimum salary X per my union's scale", "no on-call" - each is one profile line, no code, and it carries real weight in `/rank` and `/apply` fit evaluations. Language is the one deal-breaker type with dedicated, structured handling: `/setup` captures every language you work in and your level (asked directly, or inferred from your CV/LinkedIn export) into a `Languages` table, and the Language Gate (`04-job-evaluation.md`) hard-rejects a posting that requires a language you haven't declared at all, while flagging - not auto-rejecting - one that asks for a higher level than you declared in a language you do work in, so a borderline case (a strict "fluent" bar against your own B1/B2, say) gets your judgment instead of a silent drop.
 

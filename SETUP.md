@@ -176,7 +176,15 @@ Run these from the repository root.
 - PowerShell:
 
 ```powershell
-$tools = @("jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search", "linkedin-search", "freehire-search")
+$tools = @(
+  "jobbank-search", "jobdanmark-search", "jobindex-search", "jobnet-search",
+  "linkedin-search", "freehire-search",
+  "apna-search", "hirist-search", "iimjobs-search", "instahyre-search",
+  "indeed-india-search", "randstad-india-search", "cutshort-search",
+  "aijobs-search", "foundit-search", "protocoljobs-search",
+  "himalayas-search", "remoteok-search", "weworkremotely-search",
+  "ycombinator-search", "otta-search"
+)
 foreach ($tool in $tools) {
   Push-Location ".agents/skills/$tool/cli"
   bun install
@@ -186,12 +194,20 @@ foreach ($tool in $tools) {
 
 - Bash / zsh / Git Bash:
 ```bash
-for tool in jobbank-search jobdanmark-search jobindex-search jobnet-search linkedin-search freehire-search; do
+for tool in \
+  jobbank-search jobdanmark-search jobindex-search jobnet-search \
+  linkedin-search freehire-search \
+  apna-search hirist-search iimjobs-search instahyre-search \
+  indeed-india-search randstad-india-search cutshort-search \
+  aijobs-search foundit-search protocoljobs-search \
+  himalayas-search remoteok-search weworkremotely-search \
+  ycombinator-search otta-search
+do
   (cd .agents/skills/$tool/cli && bun install)
 done
 ```
 
-For `linkedin-search` and `freehire-search` the install is optional: both have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types.
+For `linkedin-search`, `freehire-search`, and the India/remote CLIs the install is optional: they have zero runtime dependencies and run with plain `bun`; `bun install` only pulls TypeScript dev types. This fork also ships 10 India portals and 5 remote boards — `/scrape` auto-discovers them. `indeed-india-search` is personal-use only (see its SKILL.md). `foundit-search` is detail-only.
 
 If you're outside Denmark, you can generate an equivalent search skill for your local job board with `/add-portal` — it scaffolds the same CLI structure for any public portal and test-runs a live query before registering. See the "Job search tools" section in the README.
 

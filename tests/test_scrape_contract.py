@@ -26,7 +26,11 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRAPER_SKILL = REPO_ROOT / ".claude" / "skills" / "job-scraper" / "SKILL.md"
-PORTAL_CLIS = sorted((REPO_ROOT / ".agents" / "skills").glob("*-search"))
+PORTAL_CLIS = sorted(
+    p
+    for p in (REPO_ROOT / ".agents" / "skills").glob("*-search")
+    if (p / "cli" / "src" / "commands" / "search.ts").exists()
+)
 
 # Derived, never copied: a hardcoded field list drifts in lockstep with
 # nothing - if Step 2's prose drops or adds a field, the known-good portals
