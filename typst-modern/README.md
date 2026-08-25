@@ -18,8 +18,8 @@ Both use Typst’s bundled Libertinus Serif. Single column (ATS-friendly). Dates
 ## Use with ai-job-search (the #351 path)
 
 1. Install [Typst](https://github.com/typst/typst/releases). Windows: `winget install --id Typst.Typst`
-2. On this branch the files live in `typst-modern/`. Download those two `.typ` files, or check out this branch.
-3. In Claude Code, inside your **ai-job-search** working copy (your own clone, usually `master`), register each template. Point at the files from this pack:
+2. The files live on `master` in `typst-modern/` (the old `typst-templates` branch was merged and deleted).
+3. In Claude Code, inside your **ai-job-search** working copy, register each template. Point at the files from this pack:
 
 ```
 /add-template typst-modern/cv/template.typ

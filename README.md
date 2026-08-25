@@ -18,6 +18,25 @@ An AI-powered job application framework built on [Claude Code](https://claude.co
 >
 > This project has **no affiliated cryptocurrency, token, or paid sponsorship program**. Anything claiming otherwise is unauthorized and should be treated as a scam. The only ways to support the project are the Ko-fi link below and contributing on GitHub.
 
+## Current changes (this fork)
+
+`master` now includes the work that used to live only on `feat/pypdf-ats-extract` and `typst-templates`. Those branches have been deleted on GitHub.
+
+| Change | What you get |
+|--------|----------------|
+| **pypdf ATS extract** | `/apply` Step 5d and `tools/verify_pdf.py` read the CV PDF text layer with **pypdf** first (`pip install pypdf`, BSD). Windows does not need Poppler for a mechanical ATS parseability check. Poppler `pdftotext -layout -enc UTF-8` is still the fallback. If both are missing, the check degrades to a visual keyword review. |
+| **Typst templates** | Community CV + cover-letter pack in [`typst-modern/`](typst-modern/). Stock templates stay LaTeX (`moderncv` + `cover.cls`). Register the Typst pair with `/add-template` — it does not replace the bundled LaTeX. After both files are active, `/apply` runs `typst compile`. |
+
+Quick start for the Typst pack: install [Typst](https://github.com/typst/typst/releases) (`winget install --id Typst.Typst` on Windows), then:
+
+```
+/add-template typst-modern/cv/template.typ
+/add-template typst-modern/cover-letter/template.typ
+/add-template --list
+```
+
+Use `/add-template --use default` to go back to LaTeX. Full notes: [`typst-modern/README.md`](typst-modern/README.md).
+
 ## Does it actually work?
 
 I'm a geophysicist by training. When my position was cut in late 2025, I built this framework to run my own job search - the same `/scrape`, `/apply`, and `/interview` workflow in this repo, used weekly, on my own career. I was upfront about it with every employer I spoke to, and instead of counting against me, it usually sparked a genuine technical conversation.
@@ -225,8 +244,11 @@ ai-job-search/
 │   ├── robots_check.py                # Gate the browser-header retry against robots.txt
 │   ├── security_guards.py             # CI guards: permission allowlist, gitignore rules, manifests
 │   ├── upstream_triage.py             # Sort upstream commits into worth-reviewing vs probably-skip
-│   ├── verify_pdf.py                  # Verify a compiled PDF's page count and extractable text
+│   ├── verify_pdf.py                  # ATS text layer: pypdf first, then Poppler pdftotext
 │   └── README_SALARY_TOOL.md          # Salary tool setup instructions
+├── typst-modern/                      # Community Typst CV + cover-letter pack (/add-template)
+│   ├── cv/template.typ                # 2-page CV (register; does not replace stock LaTeX)
+│   └── cover-letter/template.typ      # 1-page cover letter
 ├── job_scraper/                       # Scraper state (seen jobs, results)
 ├── gmail_sync/                        # /gmail-sync state (processed message IDs, last sync date)
 ├── upskill/                           # /upskill report output (markdown reports per run)
@@ -244,7 +266,7 @@ The `/apply` command runs a **drafter-reviewer workflow** with mandatory PDF com
 4. **Spawn a reviewer agent** that researches the company and critiques the drafts
 5. **Revise** based on the reviewer's feedback
 6. **Compile and inspect** both PDFs: lualatex for the CV, xelatex for the cover letter. Claude reads the rendered pages and iterates on the LaTeX until the CV is exactly 2 pages with no orphaned entry titles, and the cover letter is exactly 1 page with the signature visible and fonts consistent.
-7. **ATS-check the CV**: extract the PDF's text layer (`pdftotext`, optional dependency) and verify it the way an ATS parser sees it — contact details present as literal text, no garbled glyphs, sane reading order — then score the posting's keyword coverage against the extraction. Keywords the profile genuinely supports get added; genuine gaps stay visible, never stuffed.
+7. **ATS-check the CV**: extract the PDF's text layer with **pypdf** first (`pip install pypdf`), falling back to Poppler `pdftotext -layout -enc UTF-8`, and verify it the way an ATS parser sees it — contact details present as literal text, no garbled glyphs, sane reading order — then score the posting's keyword coverage against the extraction. Keywords the profile genuinely supports get added; genuine gaps stay visible, never stuffed. If both extractors are missing, the check degrades to a visual keyword review.
 8. **Present** the final output with a verification checklist
 
 All claims in the CV and cover letter are verified against your actual profile. The system never fabricates skills or experience.
@@ -252,7 +274,7 @@ All claims in the CV and cover letter are verified against your actual profile. 
 ### What makes this workflow different
 
 - **PDF verification loop.** Most LaTeX-resume templates produce "looks fine in the .tex" output that breaks in the PDF: job titles orphan to the next page, cover letters spill onto page 2, bullet fonts silently fall back to the body font. The `/apply` command compiles and visually inspects every PDF and applies targeted fixes (`\needspace`, `\enlargethispage`, font-matching wrappers for list items) until the layout is clean. This runs automatically on every application.
-- **ATS verification on the PDF text layer.** An ATS reads the PDF's embedded text, not the rendered page — and LaTeX can silently produce PDFs whose text extracts as garbage (icon glyphs where the email should be, interleaved lines from multi-column layouts). `/apply` extracts the compiled CV's text layer with `pdftotext` and verifies contact details, reading order, and the posting's keyword coverage against what a parser actually sees. Honesty rule enforced: a keyword the profile doesn't support is acknowledged as a gap, never stuffed in.
+- **ATS verification on the PDF text layer.** An ATS reads the PDF's embedded text, not the rendered page — and LaTeX can silently produce PDFs whose text extracts as garbage (icon glyphs where the email should be, interleaved lines from multi-column layouts). `/apply` extracts the compiled CV's text layer with **pypdf**, then Poppler `pdftotext` if pypdf is missing, and verifies contact details, reading order, and the posting's keyword coverage against what a parser actually sees. Honesty rule enforced: a keyword the profile doesn't support is acknowledged as a gap, never stuffed in.
 - **Relevance-weighted CV cutting.** When a CV overflows 2 pages, the workflow does not cut mechanically from the "oldest" section. It scores each candidate line by (a) relevance to the target posting, (b) uniqueness in the document, and (c) whether the cover letter depends on it, and cuts the lowest-total-score line first. An older-role bullet that hits posting keywords survives ahead of a recent-role bullet that does not.
 - **Drafter-reviewer separation.** The drafter writes; a second Claude agent, spawned with a fresh context, researches the company and critiques the drafts. The drafter then revises. This catches missed keywords, weak framing, and generic language that a single pass often leaves in.
 - **Token-efficient reviewer dispatch.** The reviewer agent receives drafts inline rather than re-reading them, and the verification checklist runs once at the end of the workflow rather than being duplicated by both agents. Note: the new compile-and-inspect step in Step 5 spends some of those savings on PDF rendering and layout iteration — the workflow trades some end-to-end token cost for a real reduction in broken PDFs reaching the user.
@@ -287,7 +309,14 @@ This re-runs the search configuration interview: which roles to target, which sk
 
 The CV uses [moderncv](https://ctan.org/pkg/moderncv) (banking style). The cover letter uses a custom `cover.cls` with Lato/Raleway fonts. Both are LaTeX — the reference engine this repo ships and maintains.
 
-To use your own template instead — LaTeX, [Typst](https://typst.app/), or any other toolchain that compiles to PDF from the command line — run:
+This fork also ships a ready-made Typst pair in `typst-modern/` (2-page CV, 1-page cover letter, single-column / ATS-friendly). It is **not** the stock template — register it:
+
+```
+/add-template typst-modern/cv/template.typ
+/add-template typst-modern/cover-letter/template.typ
+```
+
+To use any other template — LaTeX, [Typst](https://typst.app/), or another toolchain that compiles to PDF from the command line — run:
 
 ```
 /add-template

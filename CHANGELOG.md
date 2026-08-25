@@ -16,6 +16,7 @@ per-file diff commands.
 ### Added
 
 - **pypdf ATS text-layer fallback** - `/apply` Step 5d and `tools/verify_pdf.py` extract the CV PDF text layer with **pypdf** first (BSD, `pip install pypdf`) so Windows machines without Poppler still get a mechanical parseability check. Poppler `pdftotext -layout -enc UTF-8` remains the fallback; if both are missing the check still degrades to a visual keyword review. No extra cache or installer. `05-cv-templates.md` `framework_version` 1.4.2 → 1.4.3.
+- **Community Typst CV + cover-letter pack** - `typst-modern/` is a bring-your-own pair for discussion #351 (2-page CV, 1-page cover letter, single column). Stock templates stay LaTeX. Register with `/add-template`; bundled `moderncv` / `cover.cls` are unchanged. After both files are active, `/apply` runs `typst compile`.
 - **Company-research cache for `/apply` and `/interview`** - `/apply` Step 3's reviewer
   agent and `/interview` Step 2 each independently execute the Company Research
   Checklist (`04-job-evaluation.md`) for the same company, so applying and later
