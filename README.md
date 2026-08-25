@@ -20,14 +20,25 @@ An AI-powered job application framework built on [Claude Code](https://claude.co
 
 ## Current changes (this fork)
 
-`master` now includes the work that used to live only on `feat/pypdf-ats-extract` and `typst-templates` (those branches were deleted), plus two community forks merged in:
+This repo is a combined fork. The code comes from these GitHub repositories:
+
+| Repository | What we took from it |
+|------------|----------------------|
+| [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search) | Upstream framework (`/setup`, `/scrape`, `/apply`, Danish portal CLIs, LinkedIn, Freehire). |
+| [ashutoshgh/ai-job-search-india](https://github.com/ashutoshgh/ai-job-search-india) | India market adaptation: 10 India portal skills + 5 remote-board skills. |
+| [waleedtarbosh/ai-job-search](https://github.com/waleedtarbosh/ai-job-search) | Universal Edition: `AGENTS.md` index, `OPENCODE.md` / `GEMINI.md` / `CODEX.md` pointers, `job-search` routers. |
+| [sdrarunvarshan/ai-job-search](https://github.com/sdrarunvarshan/ai-job-search) | This fork: pypdf ATS extract, Typst pack, and the merge of the repos above. |
+
+Local zip copies used during the merge: `Downloads\ai-job-search-india-master.zip` and `Downloads\ai-job-search-master.zip`.
+
+`master` now includes the work that used to live only on `feat/pypdf-ats-extract` and `typst-templates` (those branches were deleted), plus the two community forks:
 
 | Change | What you get |
 |--------|----------------|
 | **pypdf ATS extract** | `/apply` Step 5d and `tools/verify_pdf.py` read the CV PDF text layer with **pypdf** first (`pip install pypdf`, BSD). Windows does not need Poppler for a mechanical ATS parseability check. Poppler `pdftotext -layout -enc UTF-8` is still the fallback. If both are missing, the check degrades to a visual keyword review. |
 | **Typst templates** | Community CV + cover-letter pack in [`typst-modern/`](typst-modern/). Stock templates stay LaTeX (`moderncv` + `cover.cls`). Register the Typst pair with `/add-template` — it does not replace the bundled LaTeX. After both files are active, `/apply` runs `typst compile`. |
-| **India + remote portals** ([@ashutoshgh](https://github.com/ashutoshgh) / ai-job-search-india) | 10 India portal skills — Apna, Hirist, IIMJobs, Instahyre, Indeed India, Randstad India, Cutshort, AIJobs, Foundit, ProtocolJobs — plus 5 remote-board skills — Himalayas, RemoteOK, We Work Remotely, Y Combinator, Otta. Honest identifying User-Agent tokens on all 15 CLIs. **Heads-up:** `indeed-india-search`'s `detail` command fetches a path Indeed's `robots.txt` disallows — documented in the skill; personal use only. Foundit is **detail-only** (search is robots-disallowed / bot-blocked). |
-| **Universal Edition** ([@waleedtarbosh](https://github.com/waleedtarbosh/ai-job-search)) | Zero-duplication runtime pointers: `AGENTS.md` is the index; `OPENCODE.md`, `GEMINI.md`, and `CODEX.md` route other CLIs to the same `.claude/commands/` workflows. Identical `job-search` routers live under `.agents/skills/`, `.claude/skills/`, and `.opencode/skills/`. Candidate profile stays in `CLAUDE.md` so `/setup` does not drift. See [ai-job-search-plan.md](ai-job-search-plan.md). |
+| **India + remote portals** ([ashutoshgh/ai-job-search-india](https://github.com/ashutoshgh/ai-job-search-india)) | 10 India portal skills — Apna, Hirist, IIMJobs, Instahyre, Indeed India, Randstad India, Cutshort, AIJobs, Foundit, ProtocolJobs — plus 5 remote-board skills — Himalayas, RemoteOK, We Work Remotely, Y Combinator, Otta. Honest identifying User-Agent tokens on all 15 CLIs. **Heads-up:** `indeed-india-search`'s `detail` command fetches a path Indeed's `robots.txt` disallows — documented in the skill; personal use only. Foundit is **detail-only** (search is robots-disallowed / bot-blocked). |
+| **Universal Edition** ([waleedtarbosh/ai-job-search](https://github.com/waleedtarbosh/ai-job-search)) | Zero-duplication runtime pointers: `AGENTS.md` is the index; `OPENCODE.md`, `GEMINI.md`, and `CODEX.md` route other CLIs to the same `.claude/commands/` workflows. Identical `job-search` routers live under `.agents/skills/`, `.claude/skills/`, and `.opencode/skills/`. Candidate profile stays in `CLAUDE.md` so `/setup` does not drift. See [ai-job-search-plan.md](ai-job-search-plan.md). |
 
 Quick start for the Typst pack: install [Typst](https://github.com/typst/typst/releases) (`winget install --id Typst.Typst` on Windows), then:
 
@@ -390,7 +401,7 @@ For **country-agnostic** starting points outside Denmark, the repo ships two por
 - **`linkedin-search`** — built on LinkedIn's public, unauthenticated `jobs-guest` endpoints. Field-agnostic, **zero runtime dependencies** (runs with just `bun`), and takes the search location as an explicit flag, so it works for any market out of the box (`-l "Berlin, Germany"`, `-l "Mumbai, Maharashtra, India"`, `-l "Remote"`, …). Intended for **personal use only** — automated access is against LinkedIn's Terms of Service, so keep volume low. See `.agents/skills/linkedin-search/SKILL.md`.
 - **`freehire-search`** — queries the [freehire.me](https://freehire.me) aggregator's public REST API (JSON, no API key). Tech-focused (software, data, engineering, DevOps, remote), multi-market via facet flags (`--region`, `--country`, `--remote`), and **zero runtime dependencies**. Unlike the HTML-scraping Danish portals, results come back structured (skills, seniority, category). The backend is MIT-licensed and [self-hostable](https://github.com/strelov1/freehire) — point `FREEHIRE_API_URL` at your own instance if you prefer. See `.agents/skills/freehire-search/SKILL.md`.
 
-This fork also ships the **India market** and **remote-board** CLIs from [@ashutoshgh](https://github.com/ashutoshgh)'s adaptation. `/scrape` auto-discovers them. Each CLI sends an identifying User-Agent (`<name>-search-cli/1.0`).
+This fork also ships the **India market** and **remote-board** CLIs from [ashutoshgh/ai-job-search-india](https://github.com/ashutoshgh/ai-job-search-india). `/scrape` auto-discovers them. Each CLI sends an identifying User-Agent (`<name>-search-cli/1.0`).
 
 **India (10):** `apna-search`, `hirist-search`, `iimjobs-search`, `instahyre-search`, `indeed-india-search`, `randstad-india-search`, `cutshort-search`, `aijobs-search`, `foundit-search`, `protocoljobs-search`.
 
@@ -464,6 +475,9 @@ Thinking about a PR? Read [CONTRIBUTING.md](CONTRIBUTING.md) first - it explains
 
 ## Acknowledgements
 
+- [Mads Lorentzen](https://github.com/MadsLorentzen) — original framework: [MadsLorentzen/ai-job-search](https://github.com/MadsLorentzen/ai-job-search)
+- [ashutoshgh](https://github.com/ashutoshgh) — India + remote portal skills: [ashutoshgh/ai-job-search-india](https://github.com/ashutoshgh/ai-job-search-india)
+- [waleedtarbosh](https://github.com/waleedtarbosh) — Universal Edition (OpenCode / Gemini / Codex pointers): [waleedtarbosh/ai-job-search](https://github.com/waleedtarbosh/ai-job-search)
 - [Mikkel Krogholm](https://github.com/mikkelkrogsholm) ([skills repo](https://github.com/mikkelkrogsholm/skills)) for the job search CLI skills
 - Built with [Claude Code](https://claude.com/claude-code) by [Anthropic](https://anthropic.com)
 
