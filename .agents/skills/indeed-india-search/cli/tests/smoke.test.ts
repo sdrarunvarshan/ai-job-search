@@ -21,7 +21,7 @@ function parsedStderr(stderr: string): { error?: string; code?: string } {
   }
 }
 
-describe("indeed-india CLI live smoke", () => {
+describe.skipIf(isCI)("indeed-india CLI live smoke", () => {
   test("search returns at least one complete result", async () => {
     const result = await runCLI(["search", "-q", "accountant", "-l", "Chennai", "--limit", "5"]);
     const data = parseJSON<SearchResult>(result);
