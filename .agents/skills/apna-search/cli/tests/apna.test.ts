@@ -63,7 +63,7 @@ describe("apna CLI flag validation", () => {
   });
 });
 
-describe("apna CLI live search", () => {
+describe.skipIf(isCI)("apna CLI live search", () => {
   test('search "delivery executive" in Delhi returns ≥1 clean result', async () => {
     const result = await runCLI(["search", "-q", "delivery executive", "-l", "Delhi", "--limit", "5"]);
     expect(result.exitCode).toBe(0);
