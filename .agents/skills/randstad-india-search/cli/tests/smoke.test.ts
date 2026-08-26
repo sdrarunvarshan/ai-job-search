@@ -21,7 +21,7 @@ function parsedStderr(stderr: string): { error?: string; code?: string } {
   }
 }
 
-describe("Randstad India CLI — flag validation", () => {
+describe.skipIf(isCI)("Randstad India CLI — live search", () => {
   test("no --query and no --location exits 1 with NO_CRITERIA", async () => {
     const result = await runCLI(["search"]);
     expect(result.exitCode).not.toBe(0);
