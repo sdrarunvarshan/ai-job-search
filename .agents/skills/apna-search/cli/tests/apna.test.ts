@@ -1,4 +1,5 @@
 import { describe, test, expect } from "bun:test";
+const isCI = !!process.env.CI;
 import { runCLI, parseJSON } from "./helpers";
 
 interface SearchResult {
