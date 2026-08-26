@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { runCLI, parseJSON } from "./helpers";
-
+const isCI = !!process.env.CI;
 function parsedStderr(stderr: string): { error?: string; code?: string } {
   try {
     return JSON.parse(stderr);
