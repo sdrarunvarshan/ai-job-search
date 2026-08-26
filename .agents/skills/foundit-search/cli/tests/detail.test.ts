@@ -27,7 +27,7 @@ async function firstLiveJobId(): Promise<string> {
   return m[1];
 }
 
-describe("foundit CLI — detail (live)", () => {
+describe.skipIf(isCI)("foundit CLI — detail (live)", () => {
   let jobId = "";
   beforeAll(async () => {
     jobId = await firstLiveJobId();
